@@ -9,30 +9,41 @@
       Se déconnecter
     </button>
 
-    <FormLoginUser v-if="!isLoggedIn" />
-    <FormPostUser v-if="isLoggedIn" />
+    <FormPostUser v-if="!isLoggedIn && !showLogin" />
+    <FormLoginUser v-if="!isLoggedIn && showLogin" />
+
+    <button
+      v-if="!isLoggedIn"
+      @click="showLogin = !showLogin"
+      class="border-2 p-4 mt-4"
+    >
+      {{ showLogin ? 'Créer un compte' : 'Se connecter' }}
+    </button>
 
     <h2 class="text-3xl mt-10">Liste des Users</h2>
-    <ul class="mt-4 px-4">
-      <li v-for="user in users" :key="user.id_user">{{ user.identifiant }}</li>
+    <div v-if="userStore.loading">Chargement des utilisateurs...</div>
+    <ul>
+      <li v-for="user in userStore.users" :key="user.id_user">
+        {{ user.identifiant }} - {{ user.role }}
+      </li>
     </ul>
   </main>
 </template>
 
 <script setup lang="ts">
-import type { User } from '@/types/user.type';
-import { useAuthStore } from '../store/auth';
-const auth = useAuthStore();
+const showLogin = ref(false);
 
+import { useAuthStore } from '../store/auth';
+import { useUserStore } from '../store/user';
+const auth = useAuthStore();
+const userStore = useUserStore();
 const config = useRuntimeConfig();
 const isLoggedIn = computed(() => auth.isLoggedIn);
 const userIdentifiant = computed(() => auth.identifiant);
 
 const logout = () => auth.logout();
 
-const { data: users } = await useFetch<User[]>(
-  `${config.public.apiBase}/users`
-);
+onMounted(() => userStore.getUsers());
 </script>
 
 <style scoped>

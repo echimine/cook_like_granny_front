@@ -14,11 +14,15 @@
             <div
               class="flex items-center justify-center bg-orange w-[40px] h-[40px] rounded-[50%]"
             >
-              <div class="bg-gray-500 w-[30px] h-[30px] rounded-[50%]"></div>
+              <!-- <img
+                :src="users.photo"
+                alt="Photo de profil"
+                class="rounded-full w-20 h-20 object-cover"
+              /> -->
             </div>
             <Typographie>{{ userIdentifiant }}</Typographie>
           </div>
-          <div v-else>Se connecter</div>
+          <div v-else><Typographie>se connecter</Typographie></div>
         </nav>
       </li>
     </ul>
@@ -34,10 +38,12 @@ const auth = useAuthStore();
 const config = useRuntimeConfig();
 const isLoggedIn = computed(() => auth.isLoggedIn);
 const userIdentifiant = computed(() => auth.identifiant);
-
+console.log(userIdentifiant);
 const { data: users } = await useFetch<User[]>(
-  `${config.public.apiBase}/users`
+  `${config.public.apiBase}/users/${userIdentifiant.value}`,
+  { immediate: !!userIdentifiant.value }
 );
+console.log(userIdentifiant.value);
 </script>
 
 <style scoped></style>

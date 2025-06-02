@@ -1,42 +1,47 @@
 <template>
+  <form @submit.prevent="submitForm" class="space-y-4 max-w-md">
+    <input
+      v-model="identifiant"
+      type="text"
+      placeholder="Identifiant"
+      class="input"
+      required
+    />
+    <input
+      v-model="password"
+      type="password"
+      placeholder="password"
+      class="input"
+    />
+    <input
+      v-model="role"
+      disabled
+      type="text"
+      placeholder="role"
+      class="input"
+    />
 
-    <h1 class="text-3xl py-4">Créer un utilisateur</h1>
+    <button
+      type="submit"
+      :disabled="userStore.loading"
+      class="bg-blue py-2 px-4 rounded-lg"
+    >
+      {{ userStore.loading ? 'Chargement...' : 'Envoyer' }}
+    </button>
 
-    <form @submit.prevent="submitForm" class="space-y-4 max-w-md">
-      <input
-        v-model="identifiant"
-        type="text"
-        placeholder="Identifiant"
-        class="input"
-        required
-      />
-      <input
-        v-model="password"
-        type="password"
-        placeholder="password"
-        class="input"
-      />
-      <input
-        v-model="role"
-        disabled
-        type="text"
-        placeholder="role"
-        class="input"
-      />
-      <button type="submit" class="btn btn-primary">Envoyer</button>
-    </form>
-
-    <p v-if="error" class="text-red-500 mt-4">Erreur : {{ error.message }}</p>
-    <p v-if="success" class="text-green-500 mt-4">
-      Utilisateur créé avec succès !
-    </p>
-
+    <p v-if="error" class="text-red-500">{{ error.message }}</p>
+    <p v-if="success" class="text-green-500">Utilisateur créé avec succès !</p>
+  </form>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import type { User } from '@/types/user.type';
+import { useAuthStore } from '@/store/auth';
+import { useUserStore } from '@/store/user';
 
+const userStore = useUserStore();
+const auth = useAuthStore();
 const config = useRuntimeConfig();
 
 const identifiant = ref('');
@@ -49,8 +54,10 @@ const success = ref(false);
 async function submitForm() {
   error.value = null;
   success.value = false;
+
   try {
-    const { data, error: fetchError } = await useFetch<User>(
+    // 1. Créer l'utilisateur
+    const { error: createError } = await useFetch(
       `${config.public.apiBase}/users`,
       {
         method: 'POST',
@@ -61,12 +68,33 @@ async function submitForm() {
         },
       }
     );
-    if (fetchError.value) {
-      // Essaie d'extraire un message d'erreur clair
+
+    if (createError.value) {
       const backendMessage =
-        fetchError.value.data?.message || 'Erreur inconnue';
+        createError.value.data?.message || 'Erreur à la création du compte';
       throw new Error(backendMessage);
     }
+
+    // 2. Connexion automatique
+    const { data: loginData, error: loginError } = await useFetch<{
+      access_token: string;
+    }>(`${config.public.apiBase}/auth/login`, {
+      method: 'POST',
+      body: {
+        identifiant: identifiant.value,
+        password: password.value,
+      },
+    });
+
+    if (loginError.value) {
+      throw new Error(loginError.value.data?.message || 'Erreur lors du login');
+    }
+
+    auth.login(loginData.value!.access_token);
+
+    // 3. Rappelle la fonction getUsers() du store user
+    await userStore.getUsers();
+
     success.value = true;
     identifiant.value = '';
     password.value = '';
