@@ -2,6 +2,7 @@
   <main class="p-10">
     <div v-if="isLoggedIn" class="mb-4 text-green-500">
       Bonjour, {{ userIdentifiant }} 👋
+      <ProfileUser />
     </div>
     <div v-else class="mb-4 text-gray-500">Vous n'êtes pas connecté.</div>
 
@@ -9,6 +10,7 @@
       Se déconnecter
     </button>
 
+    <!-- form pour se connecter ou créer un compte -->
     <FormPostUser v-if="!isLoggedIn && !showLogin" />
     <FormLoginUser v-if="!isLoggedIn && showLogin" />
 
@@ -20,11 +22,12 @@
       {{ showLogin ? 'Créer un compte' : 'Se connecter' }}
     </button>
 
+    <!-- liste des users -->
     <h2 class="text-3xl mt-10">Liste des Users</h2>
     <div v-if="userStore.loading">Chargement des utilisateurs...</div>
     <ul>
       <li v-for="user in userStore.users" :key="user.id_user">
-        {{ user.identifiant }} - {{ user.role }}
+        {{ user.identifiant }}
       </li>
     </ul>
   </main>
