@@ -29,6 +29,22 @@ export const useRecipeStore = defineStore('recipe', () => {
     }
   }
 
+  // 🔄 GET une recette
+  async function getRecipe(id_recipe: number) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${config.public.apiBase}/recipes/${id_recipe}`);
+      if (!res.ok) throw new Error('Erreur lors du chargement des recettes');
+      const data = await res.json();
+      recipeDetail.value = data;
+    } catch (err: any) {
+      error.value = err.message || 'Erreur inconnue';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   // ➕ POST - Créer une recette
   async function addRecipe(recipeData: FormData | object) {
     loading.value = true;
@@ -59,25 +75,21 @@ export const useRecipeStore = defineStore('recipe', () => {
     }
   }
 
-  // ✏️ PUT - Modifier une recette
+  // ✏️ PATCH - Modifier une recette
   async function updateRecipe(id: number, updatedData: object) {
     loading.value = true;
     error.value = null;
+    console.log(updatedData, id);
     try {
       const res = await fetch(`${config.public.apiBase}/recipes/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(updatedData),
         headers: {
           'Content-Type': 'application/json',
+          // Authorization: `Bearer ${authStore.token}`, // ✅ ajoute ce header
         },
       });
       if (!res.ok) throw new Error('Erreur lors de la modification');
-      const updated = await res.json();
-      // Mets à jour localement la liste si nécessaire
-      recipes.value = recipes.value.map((r) =>
-        r.id_recipe === id ? updated : r
-      );
-      return updated;
     } catch (err: any) {
       error.value = err.message;
     } finally {
@@ -108,6 +120,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     loading,
     error,
     getAllRecipes,
+    getRecipe,
     addRecipe,
     updateRecipe,
     deleteRecipe,

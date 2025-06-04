@@ -22,12 +22,23 @@
                 </p>
               </div>
 
-              <button
-                class="text-sm text-gray-500 self-start px-2 py-1 border-2 rounded-lg hover:border-red-500"
-                @click="openDeleteModal(recipe.id_recipe)"
-              >
-                supprimer
-              </button>
+              <div class="flex flex-col gap-2">
+                <!-- Bouton Modifier -->
+                <button
+                  class="text-sm text-blue-500 border border-blue-500 px-2 py-1 rounded hover:bg-blue-100"
+                  @click="editRecipe(recipe.id_recipe)"
+                >
+                  modifier
+                </button>
+
+                <!-- Bouton Supprimer -->
+                <button
+                  class="text-sm text-red-500 border border-red-500 px-2 py-1 rounded hover:bg-red-100"
+                  @click="openDeleteModal(recipe.id_recipe)"
+                >
+                  supprimer
+                </button>
+              </div>
             </div>
 
             <ul class="ml-4 mt-2 list-disc" v-if="recipe.instructions?.length">
@@ -82,6 +93,14 @@ import { useRecipeStore } from '@/store/recipe';
 const auth = useAuthStore();
 const userStore = useUserStore();
 const recipeStore = useRecipeStore();
+
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+function editRecipe(id: number) {
+  router.push(`/edit/${id}`);
+}
 
 const user = computed(() => userStore.userDetail);
 

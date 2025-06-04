@@ -1,4 +1,5 @@
 <template>
+  <h2 class="text-2xl font-semibold mb-4">Créer un compte</h2>
   <form @submit.prevent="submitForm" class="space-y-4 max-w-md">
     <input
       v-model="identifiant"
@@ -36,7 +37,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { User } from '@/types/user.type';
 import { useAuthStore } from '@/store/auth';
 import { useUserStore } from '@/store/user';
 
